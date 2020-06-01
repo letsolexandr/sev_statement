@@ -25,12 +25,13 @@ from l_core.utilits.month import LOCAL_MONTH
 from l_core.models import Counter
 from l_core.utilits.finance import get_pdv, calculate_pdv, get_without_pdw
 from contracts.model_details.PaymentUpload import ImportPayment
+from l_core.utilits.other import get_initials_from_name
+from dict_register.models import Subscription
 from statement.models import SEDStatement
 
 from django.conf import settings
 
 MEDIA_ROOT = settings.MEDIA_ROOT
-
 
 import logging
 
@@ -91,9 +92,6 @@ class Contract(CoreBase):
             self.set_start_accrual()
         super(Contract, self).save(*args, **kwargs)
 
-        ##self.set_details_from_statement()
-        ##self.set_price_from_details()
-
     def set_organization_from_statement(self):
         """ Якщо організація при створенні договору не вказана, отримуємо її з Завки"""
         if not self.contractor and self.statement:
@@ -116,7 +114,7 @@ class Contract(CoreBase):
     def set_details_from_statement(self):
         """Отрмати деталі заявки - список послуг та таривний план"""
         ## Обслуговування
-        from dict_register.models import Subscription##, Product
+
         ## tarrif plan "web"
         if self.statement.statement_type == "web":
             ## Додаємо  оплату за підключення
@@ -172,8 +170,8 @@ class Contract(CoreBase):
             #########################################################################################################
 
         ## Додаємо додаткові послуги
-        statement:SEDStatement = self.statement
-        additional_services =statement.get_additional_services(None, to_generate_contract=True)
+        statement: SEDStatement = self.statement
+        additional_services = statement.get_additional_services(None, to_generate_contract=True)
         for service in additional_services:
             print(service)
             ContractProducts.objects.create(contract=self,
@@ -184,24 +182,6 @@ class Contract(CoreBase):
                                             pdv=service.get("service").pdv,
                                             total_price_pdv=service.get("count") * service.get(
                                                 "service").price_pdv)
-
-    def set_price_from_details(self):
-        ## Зараз не використовується
-        total_price_subscription_pdv = \
-            ContractSubscription.objects.filter(contract=self).aggregate(Sum('total_price_pdv'))[
-                'total_price_pdv__sum'] or 0
-        total_price_products_pdv = ContractProducts.objects.filter(contract=self).aggregate(Sum('total_price_pdv'))[
-                                       'total_price_pdv__sum'] or 0
-        ## Кількість місяців в періоді платежів
-        month_count = len(self.get_pay_periods())
-        self.price_contract = (month_count * total_price_subscription_pdv) + total_price_products_pdv
-        self.price_contract_by_month = total_price_subscription_pdv
-        self.save()
-
-    def get_contract_subscription_price(self):
-        total_price_pdv = ContractSubscription.objects.filter(contract=self).aggregate(Sum('total_price_pdv'))[
-                              'total_price_pdv__sum'] or 0
-        return total_price_pdv
 
     def get_contract_product_price(self):
         total_price_pdv = ContractProducts.objects.filter(contract=self).aggregate(Sum('total_price_pdv'))[
@@ -244,20 +224,6 @@ class Contract(CoreBase):
         res = RegisterAccrual.calculate_accruals(contract=self)
         return res
 
-    def get_initials_from_name(self, full_name):
-        try:
-            ##full_name = 'ПЕТРЕНКО ПЕТРО ПЕТРОВИЧ'
-            m = full_name.lstrip()
-            l = m.split(' ')
-            i3 = l[0]
-            i1 = l[1].upper()[0] + '.'
-            i2 = l[2].upper()[0] + '.'
-            f_string = f'{i1}{i2}{i3}'
-            ##f_string = 'П.П. ПЕТРОВИЧ'
-            return f_string
-        except:
-            return None
-
     def set_docx(self):
         if not self.contract_docx:
             self.contract_docx = self.generate_doc()
@@ -272,7 +238,7 @@ class Contract(CoreBase):
                                    'address': stage_property.address,
                                    'main_unit_state': stage_property.main_unit_state,
                                    'main_unit': stage_property.main_unit,
-                                   'main_unit_initials': self.get_initials_from_name(stage_property.main_unit),
+                                   'main_unit_initials': get_initials_from_name(stage_property.main_unit),
                                    'bank_name': stage_property.bank_name,
                                    'settlement_account': stage_property.settlement_account,
                                    'certificate_number': stage_property.certificate_number,
@@ -397,35 +363,21 @@ class Contract(CoreBase):
     def get_pay_periods(self, end_date=None):
         period_list = []
         start_date = self.start_accrual
-
         if type(start_date) == datetime:
             first_date = start_date.date()
         else:
             first_date = start_date
-
         end_date = end_date or self.expiration_date
-        ##raise Exception(start_date)
-
-        print('start_date -> ', str(start_date))
-        print('end_date -> ', str(end_date))
         month_range = ((end_date.year - start_date.year) * 12 - start_date.month) + end_date.month
-        ##raise Exception(month_range)
-        ##print('month_range -> ', str(month_range))
         for month_index in range(month_range + 1):
             year = first_date.year
-            ##print('first_date -> ', str(first_date))
-            ##print('month_index -> ',month_index)
             month = (start_date + relativedelta(months=+month_index)).month
-            ##print('month -> ',month)
             last_day_of_month = calendar.monthrange(year, month)[1]
-
             last_date = date(year, month, last_day_of_month)
-            ##print('last_date:',type(last_date),'first_date:',type(first_date))
             interval = (last_date - first_date).days
             period_list.append({"start_date": first_date, "end_date": last_date, "interval": interval})
-            ##print('last_date -> ', str(last_date))
             first_date = last_date + relativedelta(days=+1)
-        ##print('pay_periods -> ', str(period_list))
+
         return period_list
 
     def refresh_balance(self):
