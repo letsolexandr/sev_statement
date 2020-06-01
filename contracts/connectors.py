@@ -60,7 +60,3 @@ signals.post_save.connect(receiver=create_update_payment, sender=RegisterPayment
 signals.post_delete.connect(receiver=delete_payment, sender=RegisterPayment)
 signals.post_save.connect(receiver=create_act, sender=RegisterAccrual)
 signals.post_delete.connect(receiver=post_delete_act, sender=RegisterAct)
-signals.post_save.connect(receiver=create_update_ContractXXX, sender=ContractSubscription)
-signals.post_save.connect(receiver=create_update_ContractXXX, sender=ContractProducts)
-signals.post_delete.connect(receiver=delete_ContractXXX, sender=ContractSubscription)
-signals.post_delete.connect(receiver=delete_ContractXXX, sender=ContractProducts)
