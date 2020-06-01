@@ -137,8 +137,9 @@ class Contract(CoreBase):
             #####################################################################################
             ## Прописуємо дадаткових користувачів
             users_count = len(self.statement.all_data.get('users'))
-            ## один користувач входить в абонплату, визначаємо кількість додаткових
+            ## один користувач входить в абонплату, визначаємо кількість додаткових користувачів
             add_users_count = users_count - 1
+
             ## Оплата за підключення додаткового користувача
             product = Subscription.objects.get(pk=6)
             if add_users_count > 0:
@@ -361,6 +362,7 @@ class Contract(CoreBase):
         return relative_file_name
 
     def get_pay_periods(self, end_date=None):
+        debug_t1 = datetime.now()
         period_list = []
         start_date = self.start_accrual
         if type(start_date) == datetime:
@@ -377,6 +379,8 @@ class Contract(CoreBase):
             interval = (last_date - first_date).days
             period_list.append({"start_date": first_date, "end_date": last_date, "interval": interval})
             first_date = last_date + relativedelta(days=+1)
+        debug_t2 = datetime.now()
+        print('get_pay_periods time :',debug_t2-debug_t1)
 
         return period_list
 

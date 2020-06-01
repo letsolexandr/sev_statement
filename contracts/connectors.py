@@ -25,15 +25,6 @@ def delete_payment(sender, instance, **kwargs):
 def create_update_accrual(sender, instance, created, **kwargs):
     instance.contract.refresh_balance()
 
-
-def create_update_ContractXXX(sender, instance, created, **kwargs):
-    instance.contract.set_price_from_details()
-    if created:
-        PayPlan.calc_accruals(instance.contract)
-
-def delete_ContractXXX(sender, instance,  **kwargs):
-    instance.contract.set_price_from_details()
-
 def create_update_accrual(sender, instance, created, **kwargs):
     instance.contract.refresh_balance()
 
