@@ -126,6 +126,7 @@ class SEDStatement(CoreBase, Integration, Web):
     sign_is_valid = models.BooleanField(default=False, verbose_name='Підпис заяви валідний?')
     sign_b64 = models.TextField(null=True)
     verify_result = JSONField(null=True)
+    collback_url = models.TextField(null=True, verbose_name="Зворотній виклик при зміні статусу")
     statute_copy = models.FileField(null=True, verbose_name="Статутні документи",
                                     validators=[
                                         FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx', 'jpg'])])
