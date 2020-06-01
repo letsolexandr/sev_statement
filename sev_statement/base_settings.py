@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import logging.config
+from .secret import SECRET_KEY
 from .common.djangocolors_formatter import DjangoColorsFormatter
 from django.utils.log import DEFAULT_LOGGING
 from django.utils.translation import ugettext_lazy as _
@@ -23,8 +24,7 @@ print(BASE_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'hol#&qdk!e3gt(xe7st28gv_lj+662o&$s6$)x1mv)pbbr4p6s'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
