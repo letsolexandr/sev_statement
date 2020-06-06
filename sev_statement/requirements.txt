@@ -21,7 +21,7 @@ cssselect2==0.2.1
 cycler==0.10.0
 defusedxml==0.6.0
 dicttoxml==1.7.4
-Django==2.1.15
+Django==2.2.13
 django-celery-results==1.1.2
 django-cors-headers==3.0.1
 django-debug-toolbar==2.0
